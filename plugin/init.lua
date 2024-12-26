@@ -1,4 +1,3 @@
--- ~/.config/nvim/lua/coding-tracker/init.lua
 local M = {}
 
 -- Store the current session data
@@ -16,9 +15,9 @@ M.config = {
 }
 
 -- Debug wrapper for all functions
-local function debug_print(msg)
-	vim.notify("CodingTracker: " .. msg, vim.log.levels.INFO)
-end
+-- local function debug_print(msg)
+--	vim.notify("CodingTracker: " .. msg, vim.log.levels.INFO)
+-- end
 
 local function get_timestamp()
 	return os.time()
@@ -36,7 +35,7 @@ local function send_to_api(data)
 	vim.fn.jobstart(curl_command, {
 		on_exit = function(_, code)
 			if code ~= 0 then
-			--- debug_print("Failed to send data!")
+				--- debug_print("Failed to send data!")
 			else
 				--- debug_print("Successfully sent data!")
 			end
@@ -46,7 +45,6 @@ end
 
 function M.start_tracking()
 	local current_ft = vim.bo.filetype
-	--- debug_print("Starting tracking for filetype: " .. current_ft)
 
 	if current_ft ~= "" then
 		M.current_session = {
@@ -55,18 +53,15 @@ function M.start_tracking()
 			file_type = current_ft,
 			is_active = true,
 		}
-		--- debug_print("Session started")
 	end
 end
 
 function M.update_tracking()
 	if M.current_session.is_active then
 		local current_time = get_timestamp()
-		--- debug_print("Updating tracking")
 
 		if (current_time - M.current_session.last_activity) < M.config.idle_timeout then
 			M.current_session.last_activity = current_time
-			--- debug_print("Activity updated")
 		end
 	end
 end
@@ -75,8 +70,6 @@ function M.end_tracking()
 	if M.current_session.is_active then
 		local end_time = get_timestamp()
 		local duration = end_time - M.current_session.start_time
-
-		-- debug_print("Ending session with duration: " .. duration)
 
 		if duration > 5 then
 			local data = {
@@ -93,7 +86,6 @@ function M.end_tracking()
 end
 
 function M.setup(opts)
-	--- debug_print("Setting up plugin")
 	M.config = vim.tbl_deep_extend("force", M.config, opts or {})
 
 	local group = vim.api.nvim_create_augroup("CodingTracker", { clear = true })
@@ -101,7 +93,6 @@ function M.setup(opts)
 	vim.api.nvim_create_autocmd({ "BufEnter" }, {
 		group = group,
 		callback = function()
-			--- debug_print("BufEnter triggered")
 			M.start_tracking()
 		end,
 	})
@@ -109,7 +100,6 @@ function M.setup(opts)
 	vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave", "TextChanged" }, {
 		group = group,
 		callback = function()
-			--- debug_print("Activity triggered")
 			M.update_tracking()
 		end,
 	})
@@ -117,12 +107,9 @@ function M.setup(opts)
 	vim.api.nvim_create_autocmd({ "BufLeave", "VimLeavePre" }, {
 		group = group,
 		callback = function()
-			--- debug_print("Leave triggered")
 			M.end_tracking()
 		end,
 	})
-
-	--- debug_print("Plugin setup complete")
 end
 
 return M
